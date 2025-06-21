@@ -20,10 +20,28 @@ The **Conditional Average Treatment Effect (CATE)** extends this to subgroups:
 \text{CATE}(u) = \mathbb{E}[Y(do(A=1), u') - Y(do(A=0), u') \mid C(u') = C(u)]
 \]
 
-Bounds on \(P(\text{benefit})\) are calculated using:
+The probability of benefit, \(P(\text{benefit})\), quantifies the likelihood that an individual will experience a positive outcome as a result of the treatment. Conversely, the probability of harm, \(P(\text{harm})\), represents the likelihood of a negative outcome due to the treatment. Formally,
 
 \[
-\max\left\{0, P(y_t) - P(y_c), P(y) - P(y_c), P(y_t) - P(y)\right\} \leq P(\text{benefit}) \leq \min\left\{P(y_t), P(y'_c), P(t, y) + P(c, y)', P(y_t) - P(y_c) + P(t, y') + P(c, y)\right\}
+P(\text{benefit}) = Y(y_t,y'_c), \text{ and } P(\text{harm}) = Y(y'_t,y_c) = 1 - P(\text{benefit})
+\].
+
+These probabilities can be bounded using observational and experimental data as follows:
+
+\[
+\max\left\{\begin{aligned}
+            &0, \\
+           &P(y_t) - P(y_c), \\
+           &P(y) - P(y_c), \\
+           &P(y_t) - P(y)
+           \end{aligned}\right\} 
+\leq P(\text{benefit}) \leq
+\min\left\{\begin{aligned}
+            &P(y_t), \\
+           &P(y'_c), \\
+           &P(t, y) + P(c, y)', \\
+           &P(y_t) - P(y_c) + P(t, y') + P(c, y)
+           \end{aligned}\right\}
 \]
 
 ### Monotonicity
@@ -57,14 +75,69 @@ Distributions vary by gender:
 | Female | 0.21          | 0.28      | 0.00    | 0.51         |
 | Male   | 0.00          | 0.49      | 0.21    | 0.30         |
 
+### Numerical Example
+![Observational and Experimental Data](figures/table_2_3.png)
+
+*Figure: Observational, and Experimental data tables from the original paper.*
+
+Consider a study with both observational and experimental data available for males and females. The observational study revealed that only 70% of men and 70% of women actually chose to take the drug.
+The bounds on the probability of benefit are calculated, using the equation above and data from the figure, as:
+
+For females:
+
+\[
+0.279 \leq P(\text{benefit}|\text{female}) \leq 0.279
+\]
+
+For males:
+
+\[
+0.49 \leq P(\text{benefit}|\text{male}) \leq 0.49
+\]
+
+With absence of experimental data, the bounds widen to:
+
+\[
+0.0 \leq P(\text{benefit}|\text{female}) \leq 0.279, \quad 0.0 \leq P(\text{benefit}|\text{male}) \leq 0.58
+\]
+
+Similarly, without the observational data, the bounds widen to:
+
+\[
+0.279 \leq P(\text{benefit}|\text{female}) \leq 0.489, \quad 0.28 \leq P(\text{benefit}|\text{male}) \leq 0.49
+\]
+
+Proving the usefulness of observational in analysis.
+
+Under monotonicity, the CATE serves as a point estimate for \(P(\text{benefit})\). For instance:
+
+\[
+\text{CATE}(\text{female}) = 0.279, \quad \text{CATE}(\text{male}) = 0.28
+\]
+
+The probabilities of harm are then:
+
+\[
+P(\text{harm}|\text{female}) = P(\text{benefit}|\text{female}) - \text{CATE}(\text{female}) = 0
+\]
+
+\[
+P(\text{harm}|\text{male}) = P(\text{benefit}|\text{male}) - \text{CATE}(\text{male}) = 0.21
+\]
+
 ## Experimental Setup
 
 ### Environment Model
-The environment is a **Markov Decision Process (MDP)** defined by \(\langle S, A, R \rangle\), where \(S\) is the state space, \(A\) is the action space, and \(R\) is the reward function. A **Structural Causal Model (SCM)** captures unobserved confounders (e.g., causal response types) influencing decisions and outcomes.
+The environment is formalized as a Markov Decision Process (MDP) $M$ characterized by the tuple $\langle S, A, R \rangle$ where:
+$S$ is the state space, $A$ is the action space, and $R: S \times A \times S \rightarrow \mathbb{R}$ is the reward function.
 
-![MDP and SCM](figures/model_representations.png)
+![Model Representations](figures/model_representations.png)
 
-*Figure: (Left) MDP showing states, actions, and rewards with partial randomness (dotted arrows) due to unobserved response types. (Right) SCM illustrating unobserved confounder \(U\) affecting decision \(x\) and outcome \(Y\).*
+*Figure: Model representations: (a) Markov Decision Process (MDP) showing states, actions, and rewards with partial randomness due to unobserved Causal Response Types. (b) Structural Causal Model (SCM) illustrating the influence of unobserved confounder U on decision x and outcome Y.*
+
+In Figure [fig:mdp], we illustrate the Markov Decision Process (MDP) for our scenario. Here, $S_t$ represents the initial state, while $S_c$ denotes the state after taking a corresponding action a from the set of possible actions A. The squares in the diagram represent the resulting rewards. It is important to note that due to the unobserved Causal Response Types of individuals, the MDP introduces partial randomness, which we have represented using dotted line arrows.
+
+We can also represent this environmental model using a Structural Causal Model (SCM), as shown in Figure [fig:scm]. In this representation, the distribution of unobserved Causal Response Types, U, acts as an unobserved confounder. This confounder influences both the causal model's decision x (which belongs to the set X) and the outcome Y. The SCM representation provides an intuitive and definitive explanation for calculating P(benefit) and P(harm) using observational and experimental data. However, in our original submission, I did not explicitly introduce this representation. This is because the bounds of these probabilities are formally defined and can be directly calculated from the data using the provided equations.
 
 ### Datasets
 - **Random Sample**: 500 patients per gender, generated via `np.random.choice` to approximate response type distributions.
@@ -103,7 +176,7 @@ The environment is a **Markov Decision Process (MDP)** defined by \(\langle S, A
 - Causal agent performance needs further formal analysis to quantify improvements.
 
 ## Acknowledgments
-Thanks to Professor Rina Detcher for guidance on causality in RL.
+I express great gratitude to Professor Rina Detcher for her valuable guidance on causality in reinforcement learning.
 
 ## References
 - Muller, S., & Pearl, J. (2023). Personalized Decision Making with Observational Data. *arXiv preprint arXiv:2303.12692*.
@@ -111,4 +184,5 @@ Thanks to Professor Rina Detcher for guidance on causality in RL.
 - Li, Y., et al. (2019). Unit Selection in Causal Inference. *Journal of Causal Inference*.
 - Tian, J., & Pearl, J. (2000). Probabilities of Causation: Bounds and Identification. *Annals of Mathematics and Artificial Intelligence*.
 - Bubeck, S., & Cesa-Bianchi, N. (2012). Regret Analysis of Stochastic and Nonstochastic Multi-armed Bandit Problems. *Foundations and Trends in Machine Learning*.
+
 
