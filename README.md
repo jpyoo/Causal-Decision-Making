@@ -8,23 +8,17 @@ The project compares a standard Q-learning agent with a causally-informed RL age
 ## Key Concepts
 
 ### Causal Inference
-Causal inference is used to estimate the **probability of benefit** (\(P(\text{benefit})\)) and **probability of harm** (\(P(\text{harm})\)) using observational and experimental data. **Counterfactual logic** models outcomes under hypothetical interventions, denoted as \(Y_x(u) = y\) (“\(Y\) would be \(y\) had \(X\) been \(x\) for unit \(u\)”). The **Individual Treatment Effect (ITE)** is defined as:
+Causal inference is used to estimate the **probability of benefit** ($P(\text{benefit})$) and **probability of harm** ($P(\text{harm})$) using observational and experimental data. **Counterfactual logic** models outcomes under hypothetical interventions, denoted as $Y_x(u) = y$ ("Y would be $y$ had $X$ been $x$ for unit $u$"). The **Individual Treatment Effect (ITE)** is defined as:
 
-\[
-\text{ITE} = Y(1, u) - Y(0, u)
-\]
+$$ \text{ITE} = Y(1, u) - Y(0, u) $$
 
 The **Conditional Average Treatment Effect (CATE)** extends this to subgroups:
 
-\[
-\text{CATE}(u) = \mathbb{E}[Y(do(A=1), u') - Y(do(A=0), u') \mid C(u') = C(u)]
-\]
+$$ \text{CATE}(u) = \mathbb{E}[Y(\text{do}(A=1), u') - Y(\text{do}(A=0), u') \mid C(u') = C(u)] $$
 
 The probability of benefit, \(P(\text{benefit})\), quantifies the likelihood that an individual will experience a positive outcome as a result of the treatment. Conversely, the probability of harm, \(P(\text{harm})\), represents the likelihood of a negative outcome due to the treatment. Formally,
 
-\[
-P(\text{benefit}) = Y(y_t,y'_c), \text{ and } P(\text{harm}) = Y(y'_t,y_c) = 1 - P(\text{benefit})
-\].
+$$ P(\text{benefit}) = Y(y_t, y'_c), \quad P(\text{harm}) = Y(y'_t, y_c) = 1 - P(\text{benefit}) $$
 
 These probabilities can be bounded using observational and experimental data as follows:
 
@@ -45,28 +39,31 @@ These probabilities can be bounded using observational and experimental data as 
 \]
 
 ### Monotonicity
-**Monotonicity** assumes no harm from treatment (\(P(\text{harm}) = 0\)), simplifying analysis as \(\text{ATE} = P(\text{benefit})\). The project tests scenarios where monotonicity holds (female patients) and where it does not (male patients).
+Monotonicity assumes no harm from treatment ($P(\text{harm}) = 0$), simplifying analysis as $\text{ATE} = P(\text{benefit})$. The project tests scenarios where monotonicity holds (female patients) and where it does not (male patients).
 
-### Reinforcement Learning
+Reinforcement Learning
 Two agents are compared:
-- **Q-learning Agent (\(\mathcal{A}_Q\))**: Standard RL without causal knowledge, updated via:
 
-\[
-Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \left[ r_t + \gamma \max_{a} Q(s_{t+1}, a) - Q(s_t, a_t) \right]
-\]
+Q-learning Agent ($\mathcal{A}_Q$): Standard RL without causal knowledge, updated via:
 
-- **Causal Agent (\(\mathcal{A}_C\))**: Incorporates causal knowledge via a causal graph (\(\mathcal{G}\)) and updates bounds on \(P(\text{benefit})\) and \(P(\text{harm})\). It operates in four modes:
-  1. **Strict P(harm)**: True if upper bound of \(P(\text{harm})\) is zero.
-  2. **Optimistic P(harm)**: True if lower bound of \(P(\text{harm})\) is zero.
-  3. **Benefit-Harm Comparison**: True if upper bound of \(P(\text{benefit})\) exceeds upper bound of \(P(\text{harm})\).
-  4. **Mean Benefit Comparison**: Compares mean bounds of \(P(\text{benefit})\) and \(P(\text{harm})\).
+$$Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \left[ r_t + \gamma \max_{a} Q(s_{t+1}, a) - Q(s_t, a_t) \right]$$
 
-### Causal Response Types
+Causal Agent ($\mathcal{A}_C$): Incorporates causal knowledge via a causal graph ($\mathcal{G}$) and updates bounds on $P(\text{benefit})$ and $P(\text{harm})$. It operates in four modes:
+
+Strict P(harm): True if upper bound of $P(\text{harm})$ is zero.
+Optimistic P(harm): True if lower bound of $P(\text{harm})$ is zero.
+Benefit-Harm Comparison: True if upper bound of $P(\text{benefit})$ exceeds upper bound of $P(\text{harm})$.
+Mean Benefit Comparison: Compares mean bounds of $P(\text{benefit})$ and $P(\text{harm})$.
+
+
+
+Causal Response Types
 Patients are categorized based on treatment response:
-- **Always-takers**: Outcome occurs regardless of treatment (\(Y(do(A=1)) = Y(do(A=0)) = 1\)).
-- **Compliers**: Positive response to treatment (\(Y(do(A=1)) = 1\), \(Y(do(A=0)) = 0\)).
-- **Defiers**: Negative response to treatment (\(Y(do(A=1)) = 0\), \(Y(do(A=0)) = 1\)).
-- **Never-takers**: No outcome regardless of treatment (\(Y(do(A=1)) = Y(do(A=0)) = 0\)).
+
+Always-takers: Outcome occurs regardless of treatment ($Y(\text{do}(A=1)) = Y(\text{do}(A=0)) = 1$).
+Compliers: Positive response to treatment ($Y(\text{do}(A=1)) = 1$, $Y(\text{do}(A=0)) = 0$).
+Defiers: Negative response to treatment ($Y(\text{do}(A=1)) = 0$, $Y(\text{do}(A=0)) = 1$).
+Never-takers: No outcome regardless of treatment ($Y(\text{do}(A=1)) = Y(\text{do}(A=0)) = 0$).
 
 Distributions vary by gender:
 
@@ -85,45 +82,30 @@ The bounds on the probability of benefit are calculated, using the equation abov
 
 For females:
 
-\[
-0.279 \leq P(\text{benefit}|\text{female}) \leq 0.279
-\]
+$$0.279 \leq P(\text{benefit} \mid \text{female}) \leq 0.279$$
 
 For males:
 
-\[
-0.49 \leq P(\text{benefit}|\text{male}) \leq 0.49
-\]
+$$0.49 \leq P(\text{benefit} \mid \text{male}) \leq 0.49$$
 
 With absence of experimental data, the bounds widen to:
 
-\[
-0.0 \leq P(\text{benefit}|\text{female}) \leq 0.279, \quad 0.0 \leq P(\text{benefit}|\text{male}) \leq 0.58
-\]
+$$0.0 \leq P(\text{benefit} \mid \text{female}) \leq 0.279, \quad 0.0 \leq P(\text{benefit} \mid \text{male}) \leq 0.58$$
 
 Similarly, without the observational data, the bounds widen to:
 
-\[
-0.279 \leq P(\text{benefit}|\text{female}) \leq 0.489, \quad 0.28 \leq P(\text{benefit}|\text{male}) \leq 0.49
-\]
+$$0.279 \leq P(\text{benefit} \mid \text{female}) \leq 0.489, \quad 0.28 \leq P(\text{benefit} \mid \text{male}) \leq 0.49$$
 
 Proving the usefulness of observational in analysis.
+Under monotonicity, the CATE serves as a point estimate for $P(\text{benefit})$. For instance:
 
-Under monotonicity, the CATE serves as a point estimate for \(P(\text{benefit})\). For instance:
-
-\[
-\text{CATE}(\text{female}) = 0.279, \quad \text{CATE}(\text{male}) = 0.28
-\]
+$$\text{CATE}(\text{female}) = 0.279, \quad \text{CATE}(\text{male}) = 0.28$$
 
 The probabilities of harm are then:
 
-\[
-P(\text{harm}|\text{female}) = P(\text{benefit}|\text{female}) - \text{CATE}(\text{female}) = 0
-\]
+$$P(\text{harm} \mid \text{female}) = P(\text{benefit} \mid \text{female}) - \text{CATE}(\text{female}) = 0$$
 
-\[
-P(\text{harm}|\text{male}) = P(\text{benefit}|\text{male}) - \text{CATE}(\text{male}) = 0.21
-\]
+$$P(\text{harm} \mid \text{male}) = P(\text{benefit} \mid \text{male}) - \text{CATE}(\text{male}) = 0.21$$
 
 ## Experimental Setup
 
